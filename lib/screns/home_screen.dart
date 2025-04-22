@@ -1,105 +1,67 @@
-// import 'package:flutter/material.dart';
-
-// class HomeScreen extends StatelessWidget {
-//   const HomeScreen({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         centerTitle: true,
-//         title: Text('Tokoku'),
-//       ),
-//       body: GridView.builder(
-//         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-//        crossAxisCount: 2,
-//        childAspectRatio: 0.7,
-//        crossAxisSpacing: 10,
-//        mainAxisSpacing: 10,
-//     ),
-//     itemCount: 10,
-//     itemBuilder: (context,index) {
-//       return Card(
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Container(
-//               height: 180,
-//               width: double.infinity,
-//               child: Image.network(
-//                 'https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg'
-//                 fit: BoxFit.cover,
-//               ),
-//             )
-//             Padding(
-//               padding: EdgeInset.symmetric(
-//                 horizontal: 8,
-//                 vertical: 4
-//               ),
-//               child: Text('roduk ${index + 1}',
-//               style: TextStyle(
-//                 fontSize: 18,
-//                 color: Colors.grey
-//               ),
-//               ),
-//             ),
-//              Padding(
-//               padding: EdgeInset.symmetric(
-//                 horizontal: 8,
-//                 vertical: 4
-//               ),
-//               child: Text('Kategori ${index + 1}',
-//               style: TextStyle(
-//                 fontSize: 18,
-//                 color: Colors.grey
-//               ),
-//               ),
-//             ),
-//              Padding(
-//               padding: EdgeInset.symmetric(
-//                 horizontal: 8,
-//                 vertical: 4
-//               ),
-//               child: Text(
-//                 'Rp.20k',
-//               style: TextStyle(
-//                 fontSize: 18,
-//                 color: Colors.grey
-//               ),
-//               ),
-//             ),
-//           ],
-//         ),
-//       )
-//     }
-//    )
-//  )
-// }
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:online/models/product_model.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+   HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<Product> _products = [];
+
+  @override
+  void initState(){
+    super.initState(); 
+    fetchProducts();
+  }
+
+  Future<void> fetchProducts() async {
+    final response = await http.get(
+      Uri.parse('https://fakestoreapi.com/products')
+    );
+
+  debugPrint('Response: ${response.body}');
+
+  if(response.statusCode == 200) {
+    final List<dynamic> data = json.decode(response.body);
+
+    setState(() {
+    _products = data.map(
+      (json) => Product.fromJson(json)
+    ).toList();
+    });
+  }else{
+    throw Exception('kamu gagal dek');
+  }
+  }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text('Tokoku'),
+        title: Text('iToko'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(10),
+        padding:  EdgeInsets.all(10),
         child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             childAspectRatio: 0.7,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
           ),
-          itemCount: 10,
+          itemCount: _products.length,
           itemBuilder: (context, index) {
-            return Card(
+            final product = _products[index];
+
+            return Card(       
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -107,43 +69,43 @@ class HomeScreen extends StatelessWidget {
                     height: 180,
                     width: double.infinity,
                     child: Image.network(
-                      'https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg',
+                      product.image,
                       fit: BoxFit.cover,
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
+                    padding:  EdgeInsets.symmetric(
                       horizontal: 8,
                       vertical: 4,
                     ),
                     child: Text(
-                      'Produk ${index + 1}',
-                      style: const TextStyle(
+                      product.title,
+                      style:  TextStyle(
                         fontSize: 18,
                         color: Colors.grey,
                       ),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
+                    padding:  EdgeInsets.symmetric(
                       horizontal: 8,
                       vertical: 4,
                     ),
                     child: Text(
-                      'Kategori ${index + 1}',
-                      style: const TextStyle(
+                      product.category,
+                      style:  TextStyle(
                         fontSize: 16,
                         color: Colors.grey,
                       ),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
+                    padding:  EdgeInsets.symmetric(
                       horizontal: 8,
                       vertical: 4,
                     ),
-                    child: const Text(
-                      'Rp. 20k',
+                    child: Text(
+                      '\$${product.price}',
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.black87,
